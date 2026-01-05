@@ -824,67 +824,42 @@
             font-weight: bold;
         }
         
-        /* Approval Workflow Styles */
-        .approval-banner {
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .approval-banner.show {
-            display: block;
-        }
-        
-        .approval-banner.pending {
-            background-color: #fff3cd;
-            border-color: #ffc107;
-        }
-        
-        .approval-banner.approved {
-            background-color: #d4edda;
-            border-color: #28a745;
-        }
-        
-        .approval-banner.rejected {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-        }
-        
-        .approval-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .approval-info {
-            flex: 1;
-        }
-        
-        .approval-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .approval-label {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .approval-meta {
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-        
         /* User Badge */
         .user-badge {
             background-color: rgba(255,255,255,0.2);
             padding: 5px 12px;
             border-radius: 4px;
             font-size: 13px;
+        }
+
+        /* Help Modal Navigation */
+        .help-nav-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .help-nav-btn:hover {
+            background-color: #c0c0c0;
+        }
+        
+        .help-nav-btn.active {
+            background-color: #4b2e83;
+            color: white;
+        }
+        
+        .help-step {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media print {
@@ -932,10 +907,6 @@
             .change-indicator {
                 display: none;
             }
-            
-            .approval-banner {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -957,7 +928,6 @@
         <div class="status-bar-right">
             <button class="status-btn" onclick="showVersionHistory()">📜 Versions</button>
             <button class="status-btn" onclick="showChangeLog()">📝 Changes</button>
-            <button class="status-btn" onclick="showApprovalStatus()">✓ Approval</button>
             <button class="status-btn" onclick="exportData()">📤 Export</button>
             <button class="status-btn" onclick="importData()">📥 Import</button>
             <button class="status-btn" onclick="showManagePasskey()">🔑 Passkey</button>
@@ -1013,73 +983,381 @@
         </div>
     </div>
 
-    <!-- Approval Modal -->
-    <div id="approvalModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeApprovalModal()">&times;</span>
-            <div class="modal-header">Submit for Approval</div>
-            <div>
-                <p>Submit this crisis plan for review and approval?</p>
-                <textarea id="submissionNotes" class="modal-input" rows="3" placeholder="Add notes for reviewers (optional)..."></textarea>
-                <div class="modal-buttons">
-                    <button class="btn btn-success" style="flex: 1;" onclick="submitForApproval()">Submit for Approval</button>
-                    <button class="btn" style="flex: 1;" onclick="closeApprovalModal()">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Approval Review Modal -->
-    <div id="approvalReviewModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeApprovalReviewModal()">&times;</span>
-            <div class="modal-header">Review & Approve</div>
-            <div id="approvalReviewContent"></div>
-        </div>
-    </div>
-
     <!-- Help Modal -->
     <div id="helpModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content large" style="max-width: 1000px;">
             <span class="close" onclick="closeHelpModal()">&times;</span>
-            <div class="modal-header">How to Use This Form</div>
-            <div style="line-height: 1.8;">
-                <h3 style="color: #4b2e83; margin-top: 15px;">🎨 School Logo</h3>
-                <p>Upload your school's logo in the header. It will be saved with your form data.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">💾 Auto-Save</h3>
-                <p>Your progress is automatically saved every time you make a change.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">👤 User Identity</h3>
-                <p>Set your name so that changes you make are tracked and attributed to you.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">🔑 Passkey System</h3>
-                <p><strong>Create a Passkey:</strong> Set a unique key (8+ characters) to enable collaborative editing.</p>
-                <p><strong>Share with Others:</strong> Give your passkey to colleagues so they can access and edit the same form.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">📜 Version History</h3>
-                <p>View all saved versions of your plan. You can restore previous versions or compare changes between versions.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">📝 Change Tracking</h3>
-                <p>All changes are tracked with who made them and when. View the complete change log anytime.</p>
-                
-                <h3 style="color: #4b2e83; margin-top: 15px;">✓ Approval Workflow</h3>
-                <p>Submit your plan for review when ready. Reviewers can approve or request changes.</p>
+            <div class="modal-header">📖 Complete User Guide</div>
+            
+            <!-- Step Navigation -->
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="help-nav-btn active" onclick="showHelpStep(1)" id="helpNav1">1. Getting Started</button>
+                <button class="help-nav-btn" onclick="showHelpStep(2)" id="helpNav2">2. Passkey System</button>
+                <button class="help-nav-btn" onclick="showHelpStep(3)" id="helpNav3">3. Editing Form</button>
+                <button class="help-nav-btn" onclick="showHelpStep(4)" id="helpNav4">4. Collaboration</button>
+                <button class="help-nav-btn" onclick="showHelpStep(5)" id="helpNav5">5. Export/Import</button>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-primary" onclick="closeHelpModal()">Got It!</button>
+            
+            <!-- Step 1: Getting Started -->
+            <div class="help-step" id="helpStep1" style="display: block;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #4b2e83 0%, #5c3a9e 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+                        <h2 style="margin: 0; font-size: 24px; color: white;">Welcome to the Crisis Action Plan Tool</h2>
+                        <p style="margin: 10px 0 0 0; opacity: 0.9; color: white;">A web-based form for schools to create and maintain crisis plans</p>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #4b2e83; margin-top: 0;">📋 Step 1: Access the Form</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-left: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #4b2e83; font-weight: bold;">•</span>
+                            <span>Navigate to this webpage in your web browser (Chrome, Firefox, Edge, or Safari recommended)</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #4b2e83; font-weight: bold;">•</span>
+                            <span>Bookmark this page for easy access later</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #4b2e83; font-weight: bold;">•</span>
+                            <span>All your data is saved locally in your browser – no account or login required</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #3498db; margin-top: 0;">👤 Step 2: Set Your Identity</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-left: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #3498db; font-weight: bold;">•</span>
+                            <span>Click the "🔑 Passkey" button in the top status bar</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #3498db; font-weight: bold;">•</span>
+                            <span>Enter your name in the "Set Your Name" field so your edits are tracked</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #3498db; font-weight: bold;">•</span>
+                            <span>Your name will appear on all changes you make in the Change Log</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #27ae60; margin-top: 0;">🎨 Step 3: Personalize Your Plan</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-left: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #27ae60; font-weight: bold;">•</span>
+                            <span>Click the logo placeholder at the top to upload your school's logo</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #27ae60; font-weight: bold;">•</span>
+                            <span>Your logo will be saved with your form data and appear when printed</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #9b59b6; margin-top: 0;">💾 Step 4: Create Version Snapshots</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-left: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #9b59b6; font-weight: bold;">•</span>
+                            <span>Click "💾 Save Version" to create a snapshot of your current work</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #9b59b6; font-weight: bold;">•</span>
+                            <span>Give it a descriptive name like "Draft 1" or "Final Review"</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #9b59b6; font-weight: bold;">•</span>
+                            <span>Access all versions by clicking "📜 Versions" in the top bar</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #9b59b6; font-weight: bold;">•</span>
+                            <span>You can restore any previous version if needed</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px;">
+                    <h4 style="color: #2e7d32; margin-top: 0;">💡 Auto-Save Feature</h4>
+                    <p style="margin-bottom: 0;">Your progress is automatically saved every time you make a change. Watch the green indicator in the top status bar – it shows "Saved" when your data is secure.</p>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Approval Banner -->
-    <div id="approvalBanner" class="approval-banner">
-        <div class="approval-status">
-            <div class="approval-info">
-                <div class="approval-label" id="approvalLabel"></div>
-                <div class="approval-meta" id="approvalMeta"></div>
+            
+            <!-- Step 2: Passkey System -->
+            <div class="help-step" id="helpStep2" style="display: none;">
+                <h3 style="color: #4b2e83; border-bottom: 2px solid #4b2e83; padding-bottom: 10px;">🔑 Understanding the Passkey System</h3>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0; color: #856404;">⚠️ Important: Local Storage Only</h4>
+                    <p style="margin-bottom: 0;">The passkey system stores data <strong>locally in your browser</strong> on your computer. It does <strong>NOT</strong> sync data across different computers or enable real-time collaboration. To share your work with colleagues on different computers, you must use the <strong>Export/Import JSON file system</strong> (see Step 5).</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div style="background: #d4edda; padding: 20px; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: #155724;">What Passkeys ARE Good For</h4>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            <li>Organizing multiple plans on the same computer</li>
+                            <li>Switching between different Crisis Plans</li>
+                            <li>Keeping work separate from other browser users</li>
+                        </ul>
+                    </div>
+                    <div style="background: #f8d7da; padding: 20px; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: #721c24;">What Passkeys DON'T Do</h4>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            <li>Sync data to the cloud</li>
+                            <li>Enable editing on different computers</li>
+                            <li>Allow simultaneous collaboration</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: #4b2e83; margin-top: 0;">📋 How to Use Passkeys (Same Computer)</h4>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <span style="background: #4b2e83; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">1</span>
+                            <div>
+                                <strong>Create a Passkey:</strong> Click "🔑 Passkey" → Enter a unique code (e.g., "Lincoln-HS-2025") → Click "Set Passkey"
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <span style="background: #4b2e83; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">2</span>
+                            <div>
+                                <strong>Your Data is Tagged:</strong> All your form data is now associated with this passkey in your browser
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <span style="background: #4b2e83; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">3</span>
+                            <div>
+                                <strong>Switch Plans:</strong> Enter a different passkey and click "Load with Passkey" to switch to another plan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px;">
+                    <h4 style="margin-top: 0; color: white;">🔄 How to Collaborate with Others (Different Computers)</h4>
+                    <p>To work with colleagues on different computers, use the JSON file sharing method:</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                        <div><strong>1.</strong> Complete your edits on your computer</div>
+                        <div><strong>2.</strong> Click "📤 Export" to download a JSON file</div>
+                        <div><strong>3.</strong> Email the JSON file to your colleague</div>
+                        <div><strong>4.</strong> They click "📥 Import" and select the file</div>
+                        <div><strong>5.</strong> They make their edits and export back to you</div>
+                    </div>
+                    <p style="margin-bottom: 0; margin-top: 15px; opacity: 0.9;"><em>See Step 5 (Export/Import) for detailed instructions.</em></p>
+                </div>
             </div>
-            <div class="approval-actions" id="approvalActions"></div>
+            
+            <!-- Step 3: Editing the Form -->
+            <div class="help-step" id="helpStep3" style="display: none;">
+                <h3 style="color: #4b2e83; border-bottom: 2px solid #4b2e83; padding-bottom: 10px;">✏️ Editing the Form</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #4b2e83; margin-top: 0;">📝 Text Fields</h4>
+                        <p>Yellow highlighted fields are fillable. Click any field and start typing. Your changes save automatically.</p>
+                        <div style="background: #fff9c4; border: 1px solid #fbc02d; padding: 8px; border-radius: 4px; margin-top: 10px;">
+                            Example fillable field
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #4b2e83; margin-top: 0;">📊 Tables</h4>
+                        <p>Many sections have tables for team members, resources, etc. Use the green "➕ Add Row" button to add entries.</p>
+                        <button style="background-color: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 10px;">+ Add Row</button>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #4b2e83; margin-top: 0;">🗑️ Remove Rows</h4>
+                        <p>Each table row has a red "Remove" button on the right side to delete entries you no longer need.</p>
+                        <button style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; margin-top: 10px;">Remove</button>
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h4 style="color: #1565c0; margin-top: 0;">📑 Navigation Tips</h4>
+                    <ul style="margin-bottom: 0; padding-left: 20px;">
+                        <li>Use the purple <strong>Table of Contents</strong> to jump to any section</li>
+                        <li>Click section headers to expand/collapse subsections</li>
+                        <li>Use Ctrl+F (Cmd+F on Mac) to search for specific text</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Step 4: Collaboration -->
+            <div class="help-step" id="helpStep4" style="display: none;">
+                <h3 style="color: #4b2e83; border-bottom: 2px solid #4b2e83; padding-bottom: 10px;">👥 Team Collaboration</h3>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0; color: #856404;">📋 How Collaboration Works</h4>
+                    <p style="margin-bottom: 0;">Since data is stored locally in each person's browser, team collaboration requires <strong>sharing JSON files</strong> via email or shared drives. Each team member must visit <strong>this same website</strong> to import the JSON file and continue editing. This is a "pass the baton" workflow where one person edits at a time.</p>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin: 20px 0;">
+                    <h4 style="margin-top: 0; color: white;">🔄 Recommended Team Workflow</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; text-align: center; margin-top: 15px;">
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">👤</div>
+                            <strong>User A</strong><br>
+                            <small>Creates plan, makes edits</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">📤</div>
+                            <strong>Export</strong><br>
+                            <small>Downloads JSON file</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">📧</div>
+                            <strong>Share</strong><br>
+                            <small>Emails file + website link</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">🌐</div>
+                            <strong>Visit</strong><br>
+                            <small>User B opens this website</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">📥</div>
+                            <strong>Import</strong><br>
+                            <small>User B imports JSON file</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">✏️</div>
+                            <strong>Edit</strong><br>
+                            <small>User B makes changes</small>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; margin-bottom: 5px;">🔁</div>
+                            <strong>Repeat</strong><br>
+                            <small>Export & share again</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: #1565c0; margin-top: 0;">🔗 Important: Share the Website Link!</h4>
+                    <p style="margin-bottom: 0;">When sharing the JSON file with a colleague, also share the link to this website. They need to open this same Crisis Action Plan Tool webpage in their browser, then click "📥 Import" to load the JSON file you sent them.</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #4b2e83; margin-top: 0;">📜 Version History</h4>
+                        <p>Click "📜 Versions" to see all saved versions. You can:</p>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            <li>View when versions were created</li>
+                            <li>See who created each version</li>
+                            <li>Restore previous versions</li>
+                        </ul>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #4b2e83; margin-top: 0;">📝 Change Tracking</h4>
+                        <p>Click "📝 Changes" to see a detailed log of:</p>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            <li>What was changed</li>
+                            <li>Who made the change</li>
+                            <li>When it was changed</li>
+                            <li>Old vs. new values</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #2e7d32;">💡 Best Practice:</strong> Before sharing your JSON file, click "💾 Save Version" to create a named snapshot. This makes it easy to track who made which version!
+                </div>
+            </div>
+            
+            <!-- Step 5: Export/Import -->
+            <div class="help-step" id="helpStep5" style="display: none;">
+                <h3 style="color: #4b2e83; border-bottom: 2px solid #4b2e83; padding-bottom: 10px;">📤 Export & Import with JSON Files</h3>
+                
+                <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 25px; border-radius: 12px; margin: 20px 0;">
+                    <h4 style="color: white; margin-top: 0;">⭐ This is the Primary Way to Share & Collaborate!</h4>
+                    <p style="margin-bottom: 0;">JSON files are the only way to share your Crisis Action Plan with colleagues on different computers. Think of it as a complete portable backup that includes all form data, version history, and change logs.</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #4b2e83; margin-top: 0;">📁 What's Inside a JSON File?</h4>
+                    <ul style="margin-bottom: 0; padding-left: 20px;">
+                        <li>All filled-in form data (text fields, tables, etc.)</li>
+                        <li>Your school logo</li>
+                        <li>Version history (all saved snapshots)</li>
+                        <li>Change log (who changed what and when)</li>
+                        <li>Timestamp of when it was exported</li>
+                    </ul>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div style="background: #e3f2fd; padding: 25px; border-radius: 8px;">
+                        <h4 style="color: #1565c0; margin-top: 0;">📤 How to Export</h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #1565c0; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">1</span>
+                                <span>Click "📤 Export" in the top status bar</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #1565c0; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">2</span>
+                                <span>A .json file automatically downloads</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #1565c0; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">3</span>
+                                <span>Find it in your Downloads folder</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #1565c0; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">4</span>
+                                <span>Email or share via Google Drive, OneDrive, etc.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 25px; border-radius: 8px;">
+                        <h4 style="color: #2e7d32; margin-top: 0;">📥 How to Import</h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #2e7d32; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">1</span>
+                                <span>Save the JSON file someone sent you</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #2e7d32; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">2</span>
+                                <span>Click "📥 Import" in the top status bar</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #2e7d32; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">3</span>
+                                <span>Select the .json file from your computer</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <span style="background: #2e7d32; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;">4</span>
+                                <span>All data loads instantly – you're ready to edit!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h4 style="color: #4b2e83; margin-top: 0;">📋 Example Team Workflow</h4>
+                    <ol style="margin-bottom: 0; padding-left: 20px;">
+                        <li><strong>Counselor A</strong> starts the Crisis Plan, fills in sections 1-3</li>
+                        <li><strong>Counselor A</strong> clicks "💾 Save Version" (names it "Counselor A - Sections 1-3")</li>
+                        <li><strong>Counselor A</strong> clicks "📤 Export" and emails the JSON file to Counselor B</li>
+                        <li><strong>Counselor B</strong> clicks "📥 Import" and selects the JSON file</li>
+                        <li><strong>Counselor B</strong> fills in sections 4-5, saves a version, and exports</li>
+                        <li><strong>Counselor B</strong> emails the updated JSON back to Counselor A</li>
+                        <li>Repeat until the plan is complete!</li>
+                    </ol>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <strong style="color: #856404;">💡 Pro Tips:</strong>
+                    <ul style="margin-bottom: 0; padding-left: 20px; margin-top: 10px;">
+                        <li>Always save a version before exporting so your snapshot is included</li>
+                        <li>Keep backups of JSON files in case you need to restore older versions</li>
+                        <li>Use descriptive filenames like "LincolnHS_CrisisPlan_Jan2025_Final.json"</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <button class="btn btn-primary" onclick="closeHelpModal()" style="padding: 12px 40px;">Got It!</button>
+            </div>
         </div>
     </div>
 
@@ -2707,13 +2985,12 @@
         <div class="action-buttons">
             <button class="btn btn-primary" onclick="window.print()">🖨️ Print Form</button>
             <button class="btn btn-success" onclick="createVersion()">💾 Save Version</button>
-            <button class="btn btn-warning" onclick="showApprovalModal()">✓ Submit for Approval</button>
             <button class="btn btn-primary" onclick="exportData()">📤 Export Data</button>
             <button class="btn btn-primary" onclick="importData()">📥 Import Data</button>
         </div>
         
         <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #7f8c8d;">
-            Enhanced with Version History, Change Tracking & Approval Workflow | Updated 12.01.2024
+            Enhanced with Version History & Change Tracking | Updated 01.2025
         </p>
     </div>
 
@@ -2728,7 +3005,6 @@
         const USER_KEY = 'crisis_plan_user';
         const VERSIONS_KEY = 'crisis_plan_versions';
         const CHANGES_KEY = 'crisis_plan_changes';
-        const APPROVAL_KEY = 'crisis_plan_approval';
         
         let currentPasskey = null;
         let currentUser = 'Anonymous';
@@ -2748,7 +3024,6 @@
             checkPasskey();
             setupAutoSave();
             updateSaveStatus(true);
-            updateApprovalBanner();
             previousData = collectFormData();
         });
 
@@ -2987,185 +3262,6 @@
                 localStorage.setItem(cloudKey, JSON.stringify(changes));
             } catch (e) {
                 console.error('Error syncing changes to cloud:', e);
-            }
-        }
-
-        // ==========================================
-        // APPROVAL WORKFLOW SYSTEM
-        // ==========================================
-        
-        function showApprovalModal() {
-            document.getElementById('approvalModal').style.display = 'block';
-        }
-
-        function closeApprovalModal() {
-            document.getElementById('approvalModal').style.display = 'none';
-        }
-
-        function submitForApproval() {
-            const notes = document.getElementById('submissionNotes').value.trim();
-            
-            // Create a version first
-            createVersion();
-            
-            const approval = {
-                status: 'pending',
-                submittedBy: currentUser,
-                submittedAt: new Date().toISOString(),
-                notes: notes,
-                reviewedBy: null,
-                reviewedAt: null,
-                reviewNotes: null
-            };
-            
-            localStorage.setItem(APPROVAL_KEY, JSON.stringify(approval));
-            
-            if (currentPasskey) {
-                syncApprovalToCloud(approval);
-            }
-            
-            updateApprovalBanner();
-            closeApprovalModal();
-            showNotification('Plan submitted for approval');
-        }
-
-        function showApprovalStatus() {
-            const approval = JSON.parse(localStorage.getItem(APPROVAL_KEY) || 'null');
-            
-            if (!approval) {
-                alert('No approval request found. Submit your plan for approval first.');
-                return;
-            }
-            
-            const content = document.getElementById('approvalReviewContent');
-            
-            if (approval.status === 'pending') {
-                content.innerHTML = `
-                    <div style="margin-bottom: 20px;">
-                        <p><strong>Status:</strong> Pending Review</p>
-                        <p><strong>Submitted by:</strong> ${approval.submittedBy}</p>
-                        <p><strong>Submitted at:</strong> ${new Date(approval.submittedAt).toLocaleString()}</p>
-                        <p><strong>Notes:</strong> ${approval.notes || 'None'}</p>
-                    </div>
-                    <hr>
-                    <h3 style="margin-top: 20px;">Review Actions</h3>
-                    <textarea id="reviewNotes" class="modal-input" rows="3" placeholder="Add review notes (optional)..."></textarea>
-                    <div class="modal-buttons">
-                        <button class="btn btn-success" onclick="approveSubmission()">✓ Approve</button>
-                        <button class="btn btn-danger" onclick="rejectSubmission()">✗ Request Changes</button>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <div>
-                        <p><strong>Status:</strong> ${approval.status === 'approved' ? '✓ Approved' : '✗ Changes Requested'}</p>
-                        <p><strong>Submitted by:</strong> ${approval.submittedBy}</p>
-                        <p><strong>Submitted at:</strong> ${new Date(approval.submittedAt).toLocaleString()}</p>
-                        <p><strong>Submission notes:</strong> ${approval.notes || 'None'}</p>
-                        <hr>
-                        <p><strong>Reviewed by:</strong> ${approval.reviewedBy}</p>
-                        <p><strong>Reviewed at:</strong> ${new Date(approval.reviewedAt).toLocaleString()}</p>
-                        <p><strong>Review notes:</strong> ${approval.reviewNotes || 'None'}</p>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-warning" onclick="resubmitForApproval()">Submit New Version</button>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('approvalReviewModal').style.display = 'block';
-        }
-
-        function approveSubmission() {
-            const reviewNotes = document.getElementById('reviewNotes').value.trim();
-            const approval = JSON.parse(localStorage.getItem(APPROVAL_KEY));
-            
-            approval.status = 'approved';
-            approval.reviewedBy = currentUser;
-            approval.reviewedAt = new Date().toISOString();
-            approval.reviewNotes = reviewNotes;
-            
-            localStorage.setItem(APPROVAL_KEY, JSON.stringify(approval));
-            
-            if (currentPasskey) {
-                syncApprovalToCloud(approval);
-            }
-            
-            updateApprovalBanner();
-            closeApprovalReviewModal();
-            showNotification('Plan approved!');
-        }
-
-        function rejectSubmission() {
-            const reviewNotes = document.getElementById('reviewNotes').value.trim();
-            if (!reviewNotes) {
-                showNotification('Please provide notes explaining what changes are needed', 'warning');
-                return;
-            }
-            
-            const approval = JSON.parse(localStorage.getItem(APPROVAL_KEY));
-            
-            approval.status = 'rejected';
-            approval.reviewedBy = currentUser;
-            approval.reviewedAt = new Date().toISOString();
-            approval.reviewNotes = reviewNotes;
-            
-            localStorage.setItem(APPROVAL_KEY, JSON.stringify(approval));
-            
-            if (currentPasskey) {
-                syncApprovalToCloud(approval);
-            }
-            
-            updateApprovalBanner();
-            closeApprovalReviewModal();
-            showNotification('Changes requested');
-        }
-
-        function resubmitForApproval() {
-            closeApprovalReviewModal();
-            showApprovalModal();
-        }
-
-        function updateApprovalBanner() {
-            const approval = JSON.parse(localStorage.getItem(APPROVAL_KEY) || 'null');
-            const banner = document.getElementById('approvalBanner');
-            const label = document.getElementById('approvalLabel');
-            const meta = document.getElementById('approvalMeta');
-            const actions = document.getElementById('approvalActions');
-            
-            if (!approval) {
-                banner.classList.remove('show');
-                return;
-            }
-            
-            banner.classList.add('show');
-            banner.className = 'approval-banner show ' + approval.status;
-            
-            if (approval.status === 'pending') {
-                label.textContent = '⏳ Approval Pending';
-                meta.textContent = `Submitted by ${approval.submittedBy} on ${new Date(approval.submittedAt).toLocaleString()}`;
-                actions.innerHTML = '<button class="btn btn-primary" onclick="showApprovalStatus()">Review</button>';
-            } else if (approval.status === 'approved') {
-                label.textContent = '✓ Approved';
-                meta.textContent = `Approved by ${approval.reviewedBy} on ${new Date(approval.reviewedAt).toLocaleString()}`;
-                actions.innerHTML = '<button class="btn btn-primary" onclick="showApprovalStatus()">View Details</button>';
-            } else if (approval.status === 'rejected') {
-                label.textContent = '✗ Changes Requested';
-                meta.textContent = `Reviewed by ${approval.reviewedBy} on ${new Date(approval.reviewedAt).toLocaleString()}`;
-                actions.innerHTML = '<button class="btn btn-warning" onclick="resubmitForApproval()">Resubmit</button>';
-            }
-        }
-
-        function closeApprovalReviewModal() {
-            document.getElementById('approvalReviewModal').style.display = 'none';
-        }
-
-        function syncApprovalToCloud(approval) {
-            const cloudKey = `cloud_approval_${hashPasskey(currentPasskey)}`;
-            try {
-                localStorage.setItem(cloudKey, JSON.stringify(approval));
-            } catch (e) {
-                console.error('Error syncing approval to cloud:', e);
             }
         }
 
@@ -3473,20 +3569,16 @@
                         populateForm(parsed.data);
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed.data));
                         
-                        // Load versions, changes, and approval
+                        // Load versions and changes
                         const versionsKey = `cloud_versions_${hashPasskey(passkey)}`;
                         const changesKey = `cloud_changes_${hashPasskey(passkey)}`;
-                        const approvalKey = `cloud_approval_${hashPasskey(passkey)}`;
                         
                         const versions = localStorage.getItem(versionsKey);
                         const changes = localStorage.getItem(changesKey);
-                        const approval = localStorage.getItem(approvalKey);
                         
                         if (versions) localStorage.setItem(VERSIONS_KEY, versions);
                         if (changes) localStorage.setItem(CHANGES_KEY, changes);
-                        if (approval) localStorage.setItem(APPROVAL_KEY, approval);
                         
-                        updateApprovalBanner();
                         showNotification('Data loaded from cloud!');
                     } else {
                         showNotification('Invalid passkey', 'error');
@@ -3584,13 +3676,11 @@
             const formData = collectFormData();
             const versions = JSON.parse(localStorage.getItem(VERSIONS_KEY) || '[]');
             const changes = JSON.parse(localStorage.getItem(CHANGES_KEY) || '[]');
-            const approval = JSON.parse(localStorage.getItem(APPROVAL_KEY) || 'null');
             
             const exportPackage = {
                 formData,
                 versions,
                 changes,
-                approval,
                 exportedAt: new Date().toISOString(),
                 exportedBy: currentUser
             };
@@ -3640,11 +3730,6 @@
                         
                         if (exportPackage.changes) {
                             localStorage.setItem(CHANGES_KEY, JSON.stringify(exportPackage.changes));
-                        }
-                        
-                        if (exportPackage.approval) {
-                            localStorage.setItem(APPROVAL_KEY, JSON.stringify(exportPackage.approval));
-                            updateApprovalBanner();
                         }
                         
                         showNotification('Complete data package imported successfully');
@@ -3699,14 +3784,27 @@
 
         function showHelp() {
             document.getElementById('helpModal').style.display = 'block';
+            // Reset to first step when opening
+            showHelpStep(1);
         }
 
         function closeHelpModal() {
             document.getElementById('helpModal').style.display = 'none';
         }
 
+        function showHelpStep(stepNumber) {
+            // Hide all steps
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById('helpStep' + i).style.display = 'none';
+                document.getElementById('helpNav' + i).classList.remove('active');
+            }
+            // Show selected step
+            document.getElementById('helpStep' + stepNumber).style.display = 'block';
+            document.getElementById('helpNav' + stepNumber).classList.add('active');
+        }
+
         function clearAllData() {
-            if (confirm('⚠️ WARNING: This will permanently delete ALL data including:\n\n• All form data\n• Version history\n• Change logs\n• Approval status\n• Passkey\n• School logo\n• User information\n\nThis action cannot be undone!\n\nAre you sure you want to clear everything?')) {
+            if (confirm('⚠️ WARNING: This will permanently delete ALL data including:\n\n• All form data\n• Version history\n• Change logs\n• Passkey\n• School logo\n• User information\n\nThis action cannot be undone!\n\nAre you sure you want to clear everything?')) {
                 // Double confirmation for safety
                 if (confirm('Are you ABSOLUTELY SURE? All data will be permanently lost.')) {
                     // Clear all input fields, textareas, and selects
@@ -3744,7 +3842,6 @@
                     localStorage.removeItem(USER_KEY);
                     localStorage.removeItem(VERSIONS_KEY);
                     localStorage.removeItem(CHANGES_KEY);
-                    localStorage.removeItem(APPROVAL_KEY);
                     
                     // Clear any cloud-synced data (all keys starting with 'cloud_')
                     const keysToRemove = [];
